@@ -68,7 +68,7 @@ else:
                 WW = 34
 '''
 expr = cexpr.conditions(s, verbose=True)
-f"cdo expr,WW='{expr}' infile outfile"
+f"cdo expr,'WW={expr}' infile outfile"
 ```
 ![](static/conditions.jpg)
 
