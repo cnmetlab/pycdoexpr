@@ -1,4 +1,16 @@
 import math
+import re
+from dataclasses import dataclass
+
+from binarytree import Node
+
+@dataclass
+class cond_node:
+    node_type: str
+    value: str
+    indent: int
+    def __hash__(self):
+        return self.value
 
 class cdoexpr:
     def __init__(self) -> None:
@@ -68,6 +80,152 @@ class cdoexpr:
     def _ngt_cond_patt(self)->str:
         return '(({varname}<={bin_value}))? {true_value}:{false_value}'
 
+    def _cond_patt(self)->str:
+        return '((condition))? (true_value): (false_value)'
+
+    def parse_sentences(self, sentences:list)->tuple:
+        """parse sentences as keyward list, condition list and value list
+
+        Args:
+            sentences (list): sentences list
+
+        Returns:
+            tuple: kw_list, cond_list, value_list
+        """
+        kw_list = []
+        cond_list = []
+        value_list = []
+        for s in sentences:
+            node = self.parse_sentence(s)
+            if node is None:
+                if 'else' in s:
+                    kw_list.append('else')
+            else:
+                if node.node_type == 'condition':
+                    if 'elif' in s:
+                        kw_list.append('else')
+                        kw_list.append('if')
+                        cond_list.append(node)
+                    else:
+                        kw_list.append('if')
+                        cond_list.append(node)
+                elif node.node_type == 'value':
+                    value_list.append(node)
+        return kw_list, cond_list, value_list
+
+    def parse_sentence(self, sentence:str)->cond_node:
+        """match single sentence as cond/value node
+
+        Args:
+            sentence (str): str
+
+        Returns:
+            cond_node: conditon / value node
+        """
+        cond_pattern='^([\s\t^i]+if|[\s\t^i]+elif|if|elif)\s+([^\:]+)\:'
+        value_pattern = '^([\s\t]+)([A-Za-z\d]+[\s=]+[A-Za-z\d\.]+)'
+        match = re.match(cond_pattern, sentence)
+        indent_pattern = '^([\s\t]+)(if|else|^\s[A-Za-z\s\d\.=]+)'
+        if match:
+            match_indent = re.match(indent_pattern, match[1])
+            indent = len(match_indent[1])/4 if match_indent else 0
+            return cond_node(node_type='condition', value=match[2], indent=indent)
+        else:
+            match = re.match(value_pattern, sentence)
+            if match:
+                indent = len(match[1])/4
+                return cond_node(node_type='value', value=match[2], indent=indent)
+        return None
+
+    def _construct_tree(self,kw:list, cond:list)->Node:
+        """construct condition binary tree with keyword list and condition list
+
+        Args:
+            kw (list): keyword list
+            cond (list): condition list
+
+        Returns:
+            Node: binary tree root node
+        """
+        if len(kw)==2 and len(cond)==1 and kw[0]=='if' and kw[1] == 'else':
+            left = Node(value=0)
+            right = Node(value=1)
+            root = Node(value=cond[0].value, left=left, right=right)
+            return root
+        else:
+            stack = []
+            for n,k in enumerate(kw):
+                if k == 'if':
+                    stack.append(n)
+                elif k == 'else':
+                    idx = stack.pop()
+                if len(stack) == 0:
+                    if_index = idx
+                    else_index = n
+                    break
+            
+            root = Node(value=cond[if_index].value)
+
+            if if_index+1 == else_index:
+                left = Node(0)
+                right = self._construct_tree(kw[else_index+1:],cond[if_index+1:])
+            elif if_index+1 < else_index:
+                cond_num = kw[if_index+1:else_index-1].count('if')
+                left = self._construct_tree(kw[if_index+1:else_index], cond[1:cond_num+1])
+                if len(kw[else_index+1:])<=1:
+                    right = Node(1)
+                else:
+                    right = self._construct_tree(kw[else_index+1:], cond[cond_num+1:])
+        
+            root.left = left
+            root.right = right
+            return root
+
+    def _construct_expr(self, node:Node)->str:
+        """construct cdo condition expr from binary tree root node
+
+        Args:
+            node (Node): root node
+
+        Returns:
+            str: expr str
+        """
+        patt = '(({condition}))? ({true_value}): ({false_value})'
+        if node.max_leaf_depth == 1:
+            res = patt.format(condition=node.value, true_value=node.left.value.split('=')[-1], false_value=node.right.value.split('=')[-1])
+            return res
+        else:
+            if node.left.max_leaf_depth>=1:
+                left = self._construct_expr(node.left)
+            else:
+                left = node.left.value.split('=')[-1]
+            if node.right.max_leaf_depth>=1:
+                right = self._construct_expr(node.right)
+            else:
+                right = node.right.value.split('=')[-1]
+            res = patt.format(condition=node.value, true_value=left, false_value=right)
+            return res
+
+    def conditions(self, parag:str, verbose:bool=False)->str:
+        """parse python-syntax paragraph
+
+        Args:
+            parag (str): paragraph
+            verbose (bool, optional): print condtion tree or not. Defaults to True.
+
+        Returns:
+            str: expr
+        """
+        sentences = [p for p in parag.split('\n') if len(p)]
+        kw_list, cond_list, value_list  = self.parse_sentences(sentences)
+        root = self._construct_tree(kw_list, cond_list)
+        leaves = [i for i in root.postorder if i.value in [0,1]]
+        for l,i in zip(leaves,value_list):
+            l.value = i.value
+        if verbose:
+            root.pprint()
+        expr = self._construct_expr(root)
+        return expr
 
 def test():
     e = cdoexpr()
