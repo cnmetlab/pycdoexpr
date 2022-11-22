@@ -4,6 +4,12 @@
 
 CDO (Climate data operator) is a high-efficient command line tool for climate and meteorology data processing. This Python package helps to generate complicated cdo expr(computing expression) in a convenient and pythonic way.
 
+## Install
+Install via pip
+```shell
+pip install pycdoexpr==0.0.1
+```
+
 ## Usage
 1. generate digitize expr (same as np.digitize)
 ```python 
@@ -71,6 +77,9 @@ expr = cexpr.conditions(s, verbose=True)
 f"cdo expr,'WW={expr}' infile outfile"
 ```
 ![](static/conditions.jpg)
+
+3. convert single xgboost / sklearn tree to expr
+ - [ ] TODO
 
 ## Benchmark
 
