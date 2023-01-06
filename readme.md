@@ -19,7 +19,7 @@ from pycdoexpr import cdoexpr
 wind_level_bins = [ 0.3,  1.6,  3.4,  5.5,  8. , 10.8, 13.9, 17.2,\
     20.8, 24.5, 28.5, 32.6, 36.9, 41.4, 46.1, 50.9, 56. , 61.3]
 cexpr = cdoexpr()
-cexpr.digitize(varname='WIND_LEVEL', right=False)
+cexpr.digitize(varname='WIND_LEVEL', bins=wind_level_bins, right=False)
 ```
 
 2. convert multi-level conditions string in python syntax to cdo expr 
@@ -78,8 +78,24 @@ f"cdo expr,'WW={expr}' infile outfile"
 ```
 ![](static/conditions.jpg)
 
-3. convert single xgboost / sklearn tree to expr
- - [ ] TODO
+3. moore voting
+```python
+
+# EX3: generate moore voting cdo expression
+expr = cexpr.moore_voting(voters=['a' ,'b', 'c'], varname='MAJOR')
+f"cdo -expr,'{expr}' infile outfile"
+```
+![](static/moore_voting.jpg)
+
+4. convert multi xgboost tree to expr with ensemble method (averaging, boosting, moore_voting) *experimental*
+```python
+
+# EX4: convert a xgb decision trees model to cdo expression
+
+expr = cexpr.xgb_decision_trees('./static/model.pkl',ensemble='averaging')
+f"cdo -expr, '{expr}' infile outfile"
+```
+![](static/xgb_decision_trees.jpg)
 
 ## Benchmark
 
