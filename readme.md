@@ -7,7 +7,7 @@ CDO (Climate data operator) is a high-efficient command line tool for climate an
 ## Install
 Install via pip
 ```shell
-pip install pycdoexpr==0.0.1
+pip install pycdoexpr==0.0.2
 ```
 
 ## Usage

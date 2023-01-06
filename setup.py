@@ -11,7 +11,7 @@ with open(os.path.join(FILE_PATH, "requirements.txt")) as f:
 
 setup(
     name="pycdoexpr",
-    version="0.0.1",
+    version="0.0.2",
     author="blizhan",
     author_email="blizhan@icloud.com",
     description="A Python package helps to generate complicated cdo expr(computing expression) in pythonic way",
