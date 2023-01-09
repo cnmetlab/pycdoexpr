@@ -87,7 +87,7 @@ f"cdo -expr,'{expr}' infile outfile"
 ```
 ![](static/moore_voting.jpg)
 
-4. convert multi xgboost tree to expr with ensemble method (averaging, boosting, moore_voting) *experimental*
+4. convert multi xgboost tree to expr with ensemble method (averaging, boosting, moore_voting)  [*(usage in example)*](./example/example_xgb_decision_tree.ipynb)
 ```python
 
 # EX4: convert a xgb decision trees model to cdo expression
