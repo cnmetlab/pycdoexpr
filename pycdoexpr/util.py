@@ -45,7 +45,8 @@ def construct_tree(kw: list, cond: list) -> Node:
         root.right = right
         return root
 
-def construct_tree_with_tree_nodes(nodes:dict)->Node:
+
+def construct_tree_with_tree_nodes(nodes: dict) -> Node:
     """construct condition binary tree with decision tree nodes dict
 
     Args:
@@ -55,16 +56,19 @@ def construct_tree_with_tree_nodes(nodes:dict)->Node:
         Node: binary tree node
     """
 
-    def _construct_xgb_tree_node(root_number:int)->Node:
+    def _construct_xgb_tree_node(root_number: int) -> Node:
         n = nodes[root_number]
         root = Node(n.value)
         if len(n.child_number):
-            left, right = _construct_xgb_tree_node(n.child_number[0]), _construct_xgb_tree_node(n.child_number[1])
+            left, right = _construct_xgb_tree_node(
+                n.child_number[0]
+            ), _construct_xgb_tree_node(n.child_number[1])
             root.left, root.right = left, right
         return root
-            
+
     root = _construct_xgb_tree_node(0)
     return root
+
 
 def get_max_min_leaf_depth(root: Node) -> tuple:
     """get max min leaf depth from root
@@ -106,6 +110,7 @@ def get_max_min_leaf_depth(root: Node) -> tuple:
             is_strict &= (node.left is None) == (node.right is None)
         current_nodes = next_nodes
     return max_leaf_depth, min_leaf_depth
+
 
 def construct_expr(node: Node) -> str:
     """construct cdo condition expr from binary tree root node
