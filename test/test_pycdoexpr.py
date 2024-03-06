@@ -1,15 +1,35 @@
 from pycdoexpr import cdoexpr
 
+
 def test_digitize():
     cexpr = cdoexpr()
-    wind_level_bins = [ 0.3,  1.6,  3.4,  5.5,  8. , 10.8, 13.9, 17.2,\
-        20.8, 24.5, 28.5, 32.6, 36.9, 41.4, 46.1, 50.9, 56. , 61.3]
-    wind_level = range(0,len(wind_level_bins)+1)
-    expr = cexpr.digitize('WIND', wind_level_bins, wind_level, right=False)
+    wind_level_bins = [
+        0.3,
+        1.6,
+        3.4,
+        5.5,
+        8.0,
+        10.8,
+        13.9,
+        17.2,
+        20.8,
+        24.5,
+        28.5,
+        32.6,
+        36.9,
+        41.4,
+        46.1,
+        50.9,
+        56.0,
+        61.3,
+    ]
+    wind_level = range(0, len(wind_level_bins) + 1)
+    expr = cexpr.digitize("WIND", wind_level_bins, wind_level, right=False)
+
 
 def test_conditions():
     cexpr = cdoexpr()
-    s = '''
+    s = """
     if PRE1H > 0.001:
         if TEM2 >= 3:
             if PRE1H < 0.1:
@@ -55,13 +75,15 @@ def test_conditions():
                     WW = 45
                 else:
                     WW = 34
-    '''
+    """
     expr = cexpr.conditions(s, verbose=True)
+
 
 def test_moore_voting():
     cexpr = cdoexpr()
-    expr = cexpr.moore_voting(['a' ,'b', 'c'], 'MAJOR')
+    expr = cexpr.moore_voting(["a", "b", "c"], "MAJOR")
+
 
 def test_xgb_decision_trees():
     cexpr = cdoexpr()
-    expr = cexpr.xgb_decision_trees('./static/model.pkl',ensemble='averaging')
+    expr = cexpr.xgb_decision_trees("./static/model.pkl", ensemble="averaging")

@@ -93,7 +93,7 @@ class cdoexpr:
         expr = construct_expr(root)
         return expr
 
-    def moore_voting(self, voters:list, varname:str='MAJOR')->str:
+    def moore_voting(self, voters: list, varname: str = "MAJOR") -> str:
         """generate moore vote expression
 
         Args:
@@ -104,22 +104,22 @@ class cdoexpr:
             str: expr
         """
 
-        expr = '_count=0;\n'
-        expr += f'{varname}=0;\n'
-        expr += f'_tmp={varname};\n'
+        expr = "_count=0;\n"
+        expr += f"{varname}=0;\n"
+        expr += f"_tmp={varname};\n"
         for v in voters[:]:
 
             tmp_expr = self.conditions(
-                f'''
+                f"""
                 if _count == 0:
                     _tmp = {v}
                 else:
                     _tmp = _tmp
-                '''
+                """
             )
-            expr += f'_tmp={tmp_expr};\n'
+            expr += f"_tmp={tmp_expr};\n"
             count_expr = self.conditions(
-                f'''
+                f"""
                 if _count == 0:
                     _count = 1
                 else:
@@ -127,15 +127,12 @@ class cdoexpr:
                         _count = _count + 1
                     else:
                         _count = _count - 1
-                '''
+                """
             )
-            expr += f'_count={count_expr};\n'
-            expr += f'{varname}=_tmp;\n'
-        
+            expr += f"_count={count_expr};\n"
+            expr += f"{varname}=_tmp;\n"
+
         return expr
-
-
-
 
     def _cond_compare_operator(
         self, varname: str, patt: str, bins: list, map_list: list
@@ -223,12 +220,16 @@ class cdoexpr:
         if match:
             match_indent = re.match(indent_pattern, match[1])
             indent = len(match_indent[1]) / 4 if match_indent else 0
-            return decision_tree_node(node_type="condition", value=match[2], number=indent, child_number=())
+            return decision_tree_node(
+                node_type="condition", value=match[2], number=indent, child_number=()
+            )
         else:
             match = re.match(value_pattern, sentence)
             if match:
                 indent = len(match[1]) / 4
-                return decision_tree_node(node_type="value", value=match[2], number=indent, child_number=())
+                return decision_tree_node(
+                    node_type="value", value=match[2], number=indent, child_number=()
+                )
         return None
 
     def parse_xgb_sentence(self, sentence: str) -> decision_tree_node:
@@ -240,7 +241,9 @@ class cdoexpr:
         Returns:
             decision_tree_node: conditon / value node
         """
-        cond_pattern = "^([\s\t]+\d+|\d+):\[([^\s]+)\]\syes=(\d+),no=(\d+),missing=(\d+)"
+        cond_pattern = (
+            "^([\s\t]+\d+|\d+):\[([^\s]+)\]\syes=(\d+),no=(\d+),missing=(\d+)"
+        )
         value_pattern = "^([\s\t]+\d+|\d+):(leaf=[^\s]+)"
         match = re.match(cond_pattern, sentence)
         indent_pattern = "^([\s\t]+|)(\d+)"
@@ -248,16 +251,20 @@ class cdoexpr:
             match_number = re.match(indent_pattern, match[1])
             number = int(match_number[2])
             child = int(match[3]), int(match[4])
-            return decision_tree_node(node_type="condition", value=match[2], number=number,child_number=child)
+            return decision_tree_node(
+                node_type="condition", value=match[2], number=number, child_number=child
+            )
         else:
             match = re.match(value_pattern, sentence)
             if match:
                 match_number = re.match(indent_pattern, match[1])
                 number = int(match_number[2])
-                return decision_tree_node(node_type="value", value=match[2], number=number, child_number=())
+                return decision_tree_node(
+                    node_type="value", value=match[2], number=number, child_number=()
+                )
         return None
 
-    def parse_xgb_single_tree(self, xgb_tree:str) -> Node:
+    def parse_xgb_single_tree(self, xgb_tree: str) -> Node:
         """parse xgb single tree text to binary tree node
 
         Args:
@@ -266,7 +273,7 @@ class cdoexpr:
         Returns:
             Node: binary tree node
         """
-        sentences = xgb_tree.split('\n')
+        sentences = xgb_tree.split("\n")
         nodes = {}
         for s in sentences:
             n = self.parse_xgb_sentence(s)
@@ -275,30 +282,32 @@ class cdoexpr:
 
         root = construct_tree_with_tree_nodes(nodes)
         return root
-        
-    def xgb_decision_trees(self, pkl:str, ensemble:str) -> str:
-        with open(pkl, 'rb') as f:
+
+    def xgb_decision_trees(self, pkl: str, ensemble: str) -> str:
+        with open(pkl, "rb") as f:
             m = pickle.load(f)
         booster = m.get_booster()
         trees = booster.get_dump()
 
-        result_expr = ''
+        result_expr = ""
         ensemble_list = []
-        for i,tree in enumerate(trees):
+        for i, tree in enumerate(trees):
             tree_root = self.parse_xgb_single_tree(tree)
             expr = construct_expr(tree_root)
             result_expr += f"_VALUE{i}={expr};\n"
             ensemble_list.append(f"_VALUE{i}")
-        
-        if ensemble == 'averaging':
-            result_expr += f"VALUE=({'+'.join(ensemble_list)}) / {len(ensemble_list)};\n"
-        elif ensemble == 'boosting':
+
+        if ensemble == "averaging":
+            result_expr += (
+                f"VALUE=({'+'.join(ensemble_list)}) / {len(ensemble_list)};\n"
+            )
+        elif ensemble == "boosting":
             result_expr += f"VALUE={'+'.join(ensemble_list)};\n"
-        elif ensemble == 'moore_voting':
-            result_expr += self.moore_voting(ensemble_list, 'VALUE')
-        
+        elif ensemble == "moore_voting":
+            result_expr += self.moore_voting(ensemble_list, "VALUE")
+
         return result_expr
-        
+
 
 def test():
     e = cdoexpr()
