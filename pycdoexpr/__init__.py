@@ -20,7 +20,7 @@ class decision_tree_node:
         return self.value
 
 
-class cdoexpr:
+class CdoExpr:
     def __init__(self) -> None:
         pass
 
@@ -310,7 +310,7 @@ class cdoexpr:
 
 
 def test():
-    e = cdoexpr()
+    e = CdoExpr()
     expr = e.digitize(
         "wind",
         [
